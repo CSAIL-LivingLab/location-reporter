@@ -1,0 +1,92 @@
+<html>
+
+<head>
+<title>Location App</title>
+<meta charset="utf-8">
+
+<meta name="HandheldFriendly" content="true" />
+<meta name="viewport" content="initial-scale=1.0 user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+
+
+
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
+
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.7.2.min.js"></script>  
+<script type="text/javascript" src="https://code.jquery.com/ui/1.8.16/jquery-ui.min.js"></script>
+<script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+<script type="text/javascript">
+  $(document).ready(function() {
+    $(".mark-button").click(function(event) {
+      navigator.geolocation.getCurrentPosition(function callback(position) {
+        console.log(position);
+        date = new Date();
+        timestamp = date.toISOString();
+        $.ajax({
+          url: '/mark',
+                type: 'POST',
+                data: {
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                  timestamp: timestamp,
+                  csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+        }).success(function(data, status, xhr) {
+          row = '<span class="list-group-item">(' + position.coords.longitude + ', ' + position.coords.latitude + ') @ ' + timestamp + '</span>';
+          $(".locations-list").append(row);
+        });
+      });
+      event.preventDefault();
+      return false;
+    });
+  });
+</script>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+</head>
+
+<body>
+
+<div class="push"></div>
+
+<br /><br />
+
+<div class="container">
+  {% if username %}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Session</h3>
+    </div>
+    <div class="list-group">
+      <span class="list-group-item">Logged in as {{ username }}</span>
+      <a class="list-group-item" href="/logout">Log out</a>
+    </div>
+  </div>
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Locations</h3>
+    </div>
+    <div class="list-group locations-list">
+      <a class="list-group-item mark-button" href="/mark">Mark your location</a>
+      {# <span class="list-group-item">(longitude, latitude) @ timestamp</span> #}
+    </div>
+  </div>
+  {% else %}
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h3 class="panel-title">Session</h3>
+    </div>
+    <div class="list-group">
+      <a class="list-group-item" href="{{ authorize_url }}">Sign In with DataHub</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+{% load staticfiles %}
+
+</body>
+</html>
